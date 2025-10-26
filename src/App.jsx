@@ -1,28 +1,76 @@
-import { useState } from 'react'
+import React, { useMemo, useRef, useState } from 'react';
+import ControlPanel from './components/ControlPanel.jsx';
+import Viewer3D from './components/Viewer3D.jsx';
+import HeroPlaceholder from './components/HeroPlaceholder.jsx';
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const defaults = useMemo(() => ({
+    material: 'metal',
+    lighting: 'outdoor',
+    autoRotate: true,
+    size: 1.0,
+    thickness: 0.04,
+    detail: 1536,
+  }), []);
+
+  const [file, setFile] = useState(null);
+  const [material, setMaterial] = useState(defaults.material);
+  const [lighting, setLighting] = useState(defaults.lighting);
+  const [autoRotate, setAutoRotate] = useState(defaults.autoRotate);
+  const [size, setSize] = useState(defaults.size);
+  const [thickness, setThickness] = useState(defaults.thickness);
+  const [detail, setDetail] = useState(defaults.detail);
+
+  const actionsRef = useRef(null);
+
+  const hasModel = !!file;
+
+  const handleActionsReady = (handlers) => {
+    actionsRef.current = handlers;
+  };
+
+  const gradientBg = 'bg-gradient-to-br from-gray-900 via-purple-900/50 to-slate-900';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-lg">
-        <h1 className="text-3xl font-bold text-gray-800 mb-4">
-          Vibe Coding Platform
-        </h1>
-        <p className="text-gray-600 mb-6">
-          Your AI-powered development environment
-        </p>
-        <div className="text-center">
-          <button
-            onClick={() => setCount(count + 1)}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
-          >
-            Count is {count}
-          </button>
-        </div>
+    <div className={`font-inter ${gradientBg} text-white h-screen w-screen overflow-hidden`}> 
+      <div className="flex h-full w-full">
+        <ControlPanel
+          hasModel={hasModel}
+          defaults={defaults}
+          onUpload={(f) => setFile(f)}
+          material={material}
+          setMaterial={setMaterial}
+          lighting={lighting}
+          setLighting={setLighting}
+          autoRotate={autoRotate}
+          setAutoRotate={setAutoRotate}
+          size={size}
+          setSize={setSize}
+          thickness={thickness}
+          setThickness={setThickness}
+          detail={detail}
+          setDetail={setDetail}
+          onScreenshot={() => actionsRef.current?.screenshot?.()}
+          onDownloadSTL={() => actionsRef.current?.downloadSTL?.()}
+        />
+
+        <main className="relative flex-1 h-screen">
+          {!hasModel ? (
+            <HeroPlaceholder />
+          ) : (
+            <Viewer3D
+              file={file}
+              size={size}
+              thickness={thickness}
+              detail={detail}
+              material={material}
+              lighting={lighting}
+              autoRotate={autoRotate}
+              onActionsReady={handleActionsReady}
+            />
+          )}
+        </main>
       </div>
     </div>
-  )
+  );
 }
-
-export default App
